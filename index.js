@@ -5,7 +5,9 @@
 // ----------------------------------------------------------------------------------//
 
 import { Client, Intents } from 'discord.js';
-const { DISCORD_TOKEN, WELCOME, INTRO } = process.env;
+import { Client as NotionClient } from '@notionhq/client';
+const { DISCORD_TOKEN, WELCOME, INTRO, AGENDA_TOPICS } = process.env;
+const notion = new NotionClient({ auth: process.env.NOTION_API_KEY });
 
 const client = new Client({
   intents: [
@@ -141,6 +143,45 @@ client.on('messageReactionRemove', async (reaction, user) => {
     console.error('Something went wrong when fetching the message:', error);
     return;
   }
+});
+
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
+
+	const { commandName } = interaction;
+
+  // Handle agenda command
+	if (commandName === 'agenda') {
+    const topic = interaction.options.getString('topic');
+    const username = interaction.user.username;
+    (async () => {
+      const response = await notion.pages.create({
+        parent: {
+          database_id: AGENDA,
+        },
+        properties: {
+          'Topic Description': {
+            type: 'title',
+            title: [
+              {
+                type: 'text',
+                text: {
+                  content: topic,
+                },
+              },
+            ],
+          },
+          Contributor: {
+            type: 'text',
+            text: username,
+          },
+          // TODO: add which TH
+        },
+      });
+      
+		  await interaction.reply(`Your agenda item has been added! ${response.url}`);
+    })();
+	}
 });
 
 client.login(DISCORD_TOKEN);
