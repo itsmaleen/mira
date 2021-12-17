@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node index.js",
+    "commands": "node deploy-commands.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "fiigmnt",
@@ -18,6 +19,7 @@
     "@discordjs/rest": "0.1.0-canary.0",
     "@notionhq/client": "^0.4.9",
     "discord-api-types": "^0.25.2",
-    "discord.js": "^13.3.1"
+    "discord.js": "^13.3.1",
+    "dotenv": "^10.0.0"
   }
 }

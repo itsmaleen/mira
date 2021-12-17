@@ -6,7 +6,9 @@
 
 import { Client, Intents } from 'discord.js';
 import { Client as NotionClient } from '@notionhq/client';
-const { DISCORD_TOKEN, WELCOME, INTRO, AGENDA_TOPICS } = process.env;
+import { config } from 'dotenv';
+config();
+const { DISCORD_TOKEN, WELCOME, INTRO, NOTION_AGENDA_DB } = process.env;
 const notion = new NotionClient({ auth: process.env.NOTION_API_KEY });
 
 const client = new Client({
@@ -153,11 +155,13 @@ client.on('interactionCreate', async interaction => {
   // Handle agenda command
 	if (commandName === 'agenda') {
     const topic = interaction.options.getString('topic');
+    const townhall = interaction.options.getString('townhall');
     const username = interaction.user.username;
+    
     (async () => {
       const response = await notion.pages.create({
         parent: {
-          database_id: AGENDA,
+          database_id: NOTION_AGENDA_DB,
         },
         properties: {
           'Topic Description': {
@@ -171,11 +175,27 @@ client.on('interactionCreate', async interaction => {
               },
             ],
           },
+          // Maybe connect discord user to people on Notion?
           Contributor: {
-            type: 'text',
-            text: username,
+            'rich_text': [
+              {
+                type: 'text',
+                text: {
+                  content: username,
+                },
+              }
+            ],
           },
-          // TODO: add which TH
+          // TODO: add which TH by querying options and selecting latest possibly?
+          // Unsure why its a multi-select but atm can just add one TH.
+          // TODO: to make it work with multiple THs, maybe comma seperate and then split?
+          TH: {
+            "multi_select": [
+              {
+                "name": townhall,
+              }
+            ]
+          }
         },
       });
       
